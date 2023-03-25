@@ -22,6 +22,8 @@ poprzedni_uklad = tuple()
 plansza = tuple()
 hashset = set()
 stos_ruchow = []
+poziomy_rekursji = {plansza: 1}
+sciezka = ""
 glebokosc_rekursji = 1
 
 
@@ -123,13 +125,41 @@ def bfs(porzadek):
     print("test")
 
 
-def generuj_kroki():
-    print("test")
+def jaki_ruch(plansza_od, plansza_do):
+    od_0 = plansza_od.index(0)
+    do_0 = plansza_do.index(0)
+    global w
+
+    if do_0 - od_0 == -1:
+        return "L"
+    elif do_0 - od_0 == 1:
+        return "R"
+    elif do_0 - od_0 == -w:
+        return "U"
+    elif do_0 - od_0 == w:
+        return "D"
+    else:
+        return None
+
+
+def generuj_sciezke(koniec, min_poziom):
+    global sciezka
+
+    if koniec == plansza:
+        sciezka = sciezka[::-1]
+
+    sasiedzi = znajdz_sasiadow(koniec)
+
+    for s in sasiedzi:
+        if s in poziomy_rekursji and poziomy_rekursji[s] < min_poziom and czy_odwiedzono(s):
+            min_poziom = poziomy_rekursji[s]
+            sciezka += jaki_ruch(s, koniec)
+            generuj_sciezke(s, min_poziom)
 
 
 def dfs(porzadek):
     global stos_ruchow
-    wynik = tuple()
+    global poziomy_rekursji
     poziomy_rekursji = {plansza: 1}
 
     def visit():
@@ -148,13 +178,12 @@ def dfs(porzadek):
                 poziomy_rekursji[s] = glebokosc_rekursji
         # print(f"{zdjety} | {glebokosc_rekursji}")
         if zdjety == tuple([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 0]):
-            nonlocal wynik
-            wynik = zdjety
+            generuj_sciezke(zdjety, float('inf'))
         visit()
 
     stos_ruchow.append(plansza)
     visit()
-    return wynik
+    return sciezka
 
 
 def astr(heurystyka):
