@@ -24,6 +24,9 @@ hashset = set()
 stos_ruchow = []
 glebokosc_rekursji = 1
 
+####
+plansze = list()
+
 
 def wczytaj_uklad_poczatkowy():
     plik = open(plik_poczatkowy)
@@ -161,6 +164,75 @@ def astr(heurystyka):
     print("test")
 
 
+def hamming(board):
+    counter = 0
+    for i in range(0, k * w):
+        if board[i] == str(i + 1) and board[i] != "0":
+            counter = counter + 1
+    return counter
+
+
+def manhattan(board):
+    result = 0
+    for i in range(0, w * k):
+        if board[i] != "0":
+            x1 = int(i % board[i])
+            y1 = int(i / board[i])
+            x2 = int((int(board[i]) - 1) % board[i])
+            y2 = int((int(board[i]) - 1) / board[i])
+            result = result + abs(x1 - x2) + abs(y1 - y2)
+    return result
+
+
+def sortuj_plansze_astr(heurystyka):
+    if heurystyka == "hamm":
+        n = len(plansze)
+        swapped = False
+        for i in range(n - 1):
+            for j in range(0, n - i - 1):
+                plansze[j].koszt = plansze[j].glebokosc + hamming(plansze[j])
+                if plansze[j].koszt > plansze[j + 1].koszt:
+                    swapped = True
+                    plansze[j], plansze[j + 1] = plansze[j + 1], plansze[j]
+            if not swapped:
+                return
+
+    else:
+        n = len(plansze)
+        swapped = False
+        for i in range(n - 1):
+            for j in range(0, n - i - 1):
+                plansze[j].koszt = plansze[j].glebokosc + manhattan(plansze[j])
+                if plansze[j].koszt > plansze[j + 1].koszt:
+                    swapped = True
+                    plansze[j], plansze[j + 1] = plansze[j + 1], plansze[j]
+            if not swapped:
+                return
+
+def astr_algorytm(heurystyka, tempPlansza):
+    oznacz_jako_odwiedzony(tempPlansza)
+
+    if tempPlansza == tuple([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 0]):
+        wynik = tempPlansza
+        return wynik
+
+    ruchy = znajdz_mozliwe_ruchy(tempPlansza)
+
+    for ruch in ruchy:
+        nowyStan = nastepna_plansza(tempPlansza, ruch)
+        nowyStan.glebokosc = nowyStan.glebokosc + 1
+        if hash(nowyStan) not in hashset:
+            plansze.append(nowyStan)
+
+    sortuj_plansze_astr(heurystyka)
+    najlepszyStan = plansze.pop(0)
+    oznacz_jako_odwiedzony(najlepszyStan)
+    astr_algorytm(najlepszyStan, heurystyka)
+    return
+
+def astr(heurystyka):
+    astr_algorytm(heurystyka, plansza)
+
 def podaj_rozwiazanie():
     print("test")
 
@@ -171,4 +243,5 @@ def dodatkowe_informacje():
 
 ### "MAIN" ###:
 wczytaj_uklad_poczatkowy()
-print(dfs("URDL"))
+#print(dfs("URDL"))
+print (astr("hamm"))
