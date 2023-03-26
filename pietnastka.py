@@ -11,11 +11,10 @@ maks_glebokosc_rekursji_dfs = 25
 
 # Parametry uruchomienia programu
 strategia = sys.argv[1]
-porzadek_przeszukiwania = sys.argv[2]
-wybrana_heurystyka = sys.argv[3]
-plik_poczatkowy = sys.argv[4]
-plik_koncowy = sys.argv[5]
-plik_informacje = sys.argv[6]
+porzadek_przeszukiwania_lub_heurystyka = sys.argv[2]
+plik_poczatkowy = sys.argv[3]
+plik_koncowy = sys.argv[4]
+plik_informacje = sys.argv[5]
 
 # Zmienne
 w = 0
@@ -55,6 +54,7 @@ def wczytaj_uklad_poczatkowy():
                 tab_jeden_wymiar.append(str(item))
     global plansza
     plansza = tuple([int(i) for i in tab_jeden_wymiar])
+    plik.close()
 
 
 def znajdz_mozliwe_ruchy(wezel):
@@ -219,12 +219,16 @@ def dfs(porzadek):
     def visit():
         global najwieksza_glebokosc_na_jaka_zeszlismy
         global stany_przetworzone, stany_odwiedzone
-        aktualna_glebokosc_drzewa = 0
 
         if not stos_ruchow:
             return tuple()
 
         zdjety = stos_ruchow.pop()
+
+        if zdjety == tuple([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 0]):
+            generuj_sciezke(zdjety, float('inf'))
+            return sciezka
+
         stany_przetworzone += 1
         oznacz_jako_odwiedzony(zdjety)
         aktualna_glebokosc_drzewa = poziomy_rekursji[zdjety]
@@ -240,21 +244,16 @@ def dfs(porzadek):
         sasiedzi = sasiedzi[::-1]
 
         for s in sasiedzi:
-            if not czy_odwiedzono(s) and len(sasiedzi) > 1:
+            if not czy_odwiedzono(s):  # and len(sasiedzi) > 1:
                 stos_ruchow.append(s)
                 stany_odwiedzone += 1
                 poziomy_rekursji[s] = aktualna_glebokosc_drzewa + 1
 
-        if zdjety == tuple([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 0]):
-            generuj_sciezke(zdjety, float('inf'))
         visit()
 
     stos_ruchow.append(plansza)
     visit()
-    if sciezka != "":
-        return sciezka
-    else:
-        return -1
+    return -1
 
 
 def hamming(board):
@@ -276,6 +275,7 @@ def manhattan(board):
             wynik = wynik + abs(x1 - x2) + abs(y1 - y2)
     return wynik + najwieksza_glebokosc_na_jaka_zeszlismy
 
+
 def astr_algorytm(heurystyka, badanyWezel):
     global najwieksza_glebokosc_na_jaka_zeszlismy
     global sciezka
@@ -286,6 +286,7 @@ def astr_algorytm(heurystyka, badanyWezel):
     stany_przetworzone += 1
 
     if badanyWezel == tuple([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 0]):
+        najwieksza_glebokosc_na_jaka_zeszlismy += 1
         wynik_astr = badanyWezel
         return wynik_astr
 
@@ -297,13 +298,14 @@ def astr_algorytm(heurystyka, badanyWezel):
             ruchyDict[nowyWezel] = ruch
             if hash(nowyWezel) not in hashset:
                 plansze.append(nowyWezel)
+                stany_odwiedzone += 1
 
     najwieksza_glebokosc_na_jaka_zeszlismy += 1
 
     if heurystyka == 'manh':
         plansze.sort(key=manhattan)
     elif heurystyka == 'hamm':
-        plansze.sort(key=hamming, reverse=True)     #szukamy tego co ma najwiecej pol na odpowiednim miejscu -> odwracamy kolejnosc
+        plansze.sort(key=hamming, reverse=True)  # szukamy tego co ma najwiecej pol na odpowiednim miejscu -> odwracamy kolejnosc
 
     najblizszyStan = plansze.pop(0)
     print(najblizszyStan)
@@ -324,10 +326,10 @@ def dodatkowe_informacje():
     print("test")
 
 
-def czas_rozwiazania(czasRozpoczecia):
-    czasRozwiazywania = time.time_ns() - czasRozpoczecia
-    czasRozwiazywania = czasRozwiazywania / 1000000
-    print(round(czasRozwiazywania, 3))
+def wyliczanieCzasuRozwiazania(czasRozpoczecia):
+    wynik = time.time_ns() - czasRozpoczecia
+    wynik = wynik / 1000000
+    return round(wynik, 3)
 
 
 def printujRuchy(sciezka):
@@ -341,17 +343,55 @@ def ileRuchow(sciezka):
         return -1
 
 
+def zapisz_do_plikow(pl_koncowy, pl_informacje):
+    global stany_odwiedzone, stany_przetworzone, najwieksza_glebokosc_na_jaka_zeszlismy, czas_koncowy
+
+    k1 = open(f"./rozwiazania/pliki_koncowe/{pl_koncowy}", "w")
+    if sciezka == "":
+        k1.write("-1")
+        k1.close()
+    else:
+        k1.write(f"{ileRuchow(sciezka)}\n")
+        k1.write(sciezka)
+        k1.close()
+
+    i1 = open(f"./rozwiazania/pliki_informacje/{pl_informacje}", "w")
+    if sciezka == "":
+        i1.write("-1")
+        i1.close()
+    else:
+        i1.write(f"{ileRuchow(sciezka)}\n")
+        i1.write(f"{stany_odwiedzone}\n")
+        i1.write(f"{stany_przetworzone}\n")
+        i1.write(f"{najwieksza_glebokosc_na_jaka_zeszlismy}\n")
+        i1.write(f"{czas_koncowy}")
+        i1.close()
+
+
+def wylicz(parametr_1, parametr_2):
+    if parametr_2 == "hamm":
+        return astr("hamm")
+    elif parametr_2 == "manh":
+        return astr("manh")
+    elif parametr_1 == "bfs":
+        return bfs(parametr_2)
+    elif parametr_1 == "dfs":
+        return dfs(parametr_2)
+
+
 ### "MAIN" ###:
 wczytaj_uklad_poczatkowy()
-# print(dfs("URDL"))
 
 czasRozpoczecia = time.time_ns()
-# astr("manh")
-ruchy = dfs("DRUL")
-print("")
-czas_rozwiazania(czasRozpoczecia)
+wylicz(strategia, porzadek_przeszukiwania_lub_heurystyka)
+czas_koncowy = wyliczanieCzasuRozwiazania(czasRozpoczecia)
+zapisz_do_plikow(plik_koncowy, plik_informacje)
+
+### DEBUGGING ###
+
+print(wyliczanieCzasuRozwiazania(czasRozpoczecia))
 print(sciezka)
-print(f"ilość ruchów: {ileRuchow(ruchy)}")
-print(f"głębokość rekursji: {najwieksza_glebokosc_na_jaka_zeszlismy}")
+print(f"ilość ruchów: {ileRuchow(sciezka)}")
+print(f"największa głębokość rekursji (na jaką zeszliśmy): {najwieksza_glebokosc_na_jaka_zeszlismy}")
 print(f"stany odwiedzone: {stany_odwiedzone}")
 print(f"stany przetworzone: {stany_przetworzone}")
