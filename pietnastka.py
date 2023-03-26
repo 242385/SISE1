@@ -1,6 +1,7 @@
 # Import, system
 import sys
 import re
+import time
 
 sys.setrecursionlimit(10 ** 9)
 
@@ -23,9 +24,12 @@ plansza = tuple()
 hashset = set()
 stos_ruchow = []
 glebokosc_rekursji = 1
-
+stany_odwiedzone = 0
+stany_przetworzone = 0
 ####
 plansze = list()
+ruchyDict = {}
+ciag_ruchow = ''
 
 
 def wczytaj_uklad_poczatkowy():
@@ -160,78 +164,64 @@ def dfs(porzadek):
     return wynik
 
 
-def astr(heurystyka):
-    print("test")
-
-
 def hamming(board):
-    counter = 0
+    wynik = 0
     for i in range(0, k * w):
-        if board[i] == str(i + 1) and board[i] != "0":
-            counter = counter + 1
-    return counter
+        if board[i] == str(i + 1) and board[i] != 0:
+            wynik = wynik + 1
+    return wynik + glebokosc_rekursji
 
 
 def manhattan(board):
-    result = 0
+    wynik = 0
     for i in range(0, w * k):
-        if board[i] != "0":
-            x1 = int(i % board[i])
-            y1 = int(i / board[i])
-            x2 = int((int(board[i]) - 1) % board[i])
-            y2 = int((int(board[i]) - 1) / board[i])
-            result = result + abs(x1 - x2) + abs(y1 - y2)
-    return result
+        if board[i] != 0:
+            x1 = i % board[i]
+            y1 = i / board[i]
+            x2 = board[i] - 1 % board[i]
+            y2 = board[i] - 1 / board[i]
+            wynik = wynik + abs(x1 - x2) + abs(y1 - y2)
+    return wynik + glebokosc_rekursji
 
-
-def sortuj_plansze_astr(heurystyka):
-    if heurystyka == "hamm":
-        n = len(plansze)
-        swapped = False
-        for i in range(n - 1):
-            for j in range(0, n - i - 1):
-                plansze[j].koszt = plansze[j].glebokosc + hamming(plansze[j])
-                if plansze[j].koszt > plansze[j + 1].koszt:
-                    swapped = True
-                    plansze[j], plansze[j + 1] = plansze[j + 1], plansze[j]
-            if not swapped:
-                return
-
-    else:
-        n = len(plansze)
-        swapped = False
-        for i in range(n - 1):
-            for j in range(0, n - i - 1):
-                plansze[j].koszt = plansze[j].glebokosc + manhattan(plansze[j])
-                if plansze[j].koszt > plansze[j + 1].koszt:
-                    swapped = True
-                    plansze[j], plansze[j + 1] = plansze[j + 1], plansze[j]
-            if not swapped:
-                return
 
 def astr_algorytm(heurystyka, tempPlansza):
+    global glebokosc_rekursji
+    global ciag_ruchow
+    global stany_odwiedzone
+    global stany_przetworzone
     oznacz_jako_odwiedzony(tempPlansza)
 
+    stany_przetworzone += 1
+
     if tempPlansza == tuple([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 0]):
-        wynik = tempPlansza
-        return wynik
+        wynik_astr = tempPlansza
+        return wynik_astr
 
     ruchy = znajdz_mozliwe_ruchy(tempPlansza)
-
     for ruch in ruchy:
         nowyStan = nastepna_plansza(tempPlansza, ruch)
-        nowyStan.glebokosc = nowyStan.glebokosc + 1
-        if hash(nowyStan) not in hashset:
-            plansze.append(nowyStan)
+        if nowyStan != tuple():
+            ruchyDict[nowyStan] = ruch
+            if hash(nowyStan) not in hashset:
+                plansze.append(nowyStan)
 
-    sortuj_plansze_astr(heurystyka)
+    glebokosc_rekursji += 1
+
+    if heurystyka == 'manh':
+        plansze.sort(key=manhattan)
+    elif heurystyka == 'hamm':
+        plansze.sort(key=hamming)
+
     najlepszyStan = plansze.pop(0)
-    oznacz_jako_odwiedzony(najlepszyStan)
-    astr_algorytm(najlepszyStan, heurystyka)
+    print(najlepszyStan)
+    ciag_ruchow += ruchyDict[najlepszyStan]
+    astr_algorytm(heurystyka, najlepszyStan)
     return
+
 
 def astr(heurystyka):
     astr_algorytm(heurystyka, plansza)
+
 
 def podaj_rozwiazanie():
     print("test")
@@ -241,7 +231,42 @@ def dodatkowe_informacje():
     print("test")
 
 
+def czas_rozwiazania(czasRozpoczecia):
+    czasRozwiazywania = time.time_ns() - czasRozpoczecia
+    czasRozwiazywania = czasRozwiazywania / 1000000
+    print(round(czasRozwiazywania, 3))
+
+
+def printujRuchy(ciag_ruchow):
+    print(ciag_ruchow)
+
+
+def ileRuchow(ciag_ruchow):
+    return len(ciag_ruchow)
+
+
+def glebokoscRekursji(glebokosc_rekursji):
+    return glebokosc_rekursji - 1  # do logiki startowe jest 1, do naszych danych wyjsciowych -> 0
+
+
+def iloscStanowPrzetworzonych(stany_przetworzone):
+    return stany_przetworzone
+
+
+def iloscStanowOdwiedzonych(plansze):
+    return len(plansze)
+
+
 ### "MAIN" ###:
 wczytaj_uklad_poczatkowy()
-#print(dfs("URDL"))
-print (astr("hamm"))
+# print(dfs("URDL"))
+
+czasRozpoczecia = time.time_ns()
+astr("hamm")
+print("")
+czas_rozwiazania(czasRozpoczecia)
+printujRuchy(ciag_ruchow)
+print(ileRuchow(ciag_ruchow))
+print(glebokoscRekursji(glebokosc_rekursji))
+print(iloscStanowPrzetworzonych(stany_przetworzone))
+print(iloscStanowOdwiedzonych(plansze))
