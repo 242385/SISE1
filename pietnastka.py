@@ -145,6 +145,16 @@ def jaki_ruch(plansza_od, plansza_do):
         return None
 
 
+def ustaw_sasiadow_w_porzadku(wezel, porzadek):
+    sasiedzi = znajdz_sasiadow(wezel)
+    ruchy = {}
+    for s in sasiedzi:
+        ruchy[jaki_ruch(wezel, s)] = s
+
+    posortowane_ruchy = {litera: ruchy[litera] for litera in porzadek if litera in ruchy}
+    return tuple(posortowane_ruchy.values())
+
+
 def generuj_sciezke(koniec, min_poziom):
     global sciezka
 
@@ -175,18 +185,22 @@ def dfs(porzadek):
         if glebokosc_rekursji >= maks_glebokosc_rekursji_dfs:
             for s in znajdz_sasiadow(zdjety):
                 oznacz_jako_odwiedzony(s)
-        for s in znajdz_sasiadow(zdjety):
-            if not czy_odwiedzono(s) and len(znajdz_sasiadow(zdjety)) > 1:
+        sasiedzi = ustaw_sasiadow_w_porzadku(zdjety, porzadek)
+        sasiedzi = sasiedzi[::-1]
+        for s in sasiedzi:
+            if not czy_odwiedzono(s) and len(sasiedzi) > 1:
                 stos_ruchow.append(s)
                 poziomy_rekursji[s] = glebokosc_rekursji
-        # print(f"{zdjety} | {glebokosc_rekursji}")
         if zdjety == tuple([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 0]):
             generuj_sciezke(zdjety, float('inf'))
         visit()
 
     stos_ruchow.append(plansza)
     visit()
-    return sciezka
+    if sciezka != "":
+        return sciezka
+    else:
+        return -1
 
 
 def astr(heurystyka):
@@ -238,6 +252,7 @@ def sortuj_plansze_astr(heurystyka):
             if not swapped:
                 return
 
+
 def astr_algorytm(heurystyka, tempPlansza):
     oznacz_jako_odwiedzony(tempPlansza)
 
@@ -259,8 +274,10 @@ def astr_algorytm(heurystyka, tempPlansza):
     astr_algorytm(najlepszyStan, heurystyka)
     return
 
+
 def astr(heurystyka):
     astr_algorytm(heurystyka, plansza)
+
 
 def podaj_rozwiazanie():
     print("test")
@@ -272,5 +289,4 @@ def dodatkowe_informacje():
 
 ### "MAIN" ###:
 wczytaj_uklad_poczatkowy()
-#print(dfs("URDL"))
-print (astr("hamm"))
+print(dfs("LURD"))
