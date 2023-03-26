@@ -1,6 +1,7 @@
 # Import, system
 import sys
 import re
+import queue
 
 sys.setrecursionlimit(10 ** 9)
 
@@ -22,6 +23,7 @@ poprzedni_uklad = tuple()
 plansza = tuple()
 hashset = set()
 stos_ruchow = []
+kolejka_ruchow = queue.Queue()
 poziomy_rekursji = {plansza: 1}
 sciezka = ""
 glebokosc_rekursji = 1
@@ -125,7 +127,34 @@ def czy_odwiedzono(tuple_planszy):
 
 
 def bfs(porzadek):
-    print("test")
+    global kolejka_ruchow
+    global glebokosc_rekursji
+    global poziomy_rekursji
+    poziomy_rekursji = {plansza: 1}
+
+    kolejka_ruchow.put(plansza)
+
+    while not kolejka_ruchow.empty():
+        pobrany = kolejka_ruchow.get()
+
+        if pobrany == tuple([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 0]):
+            generuj_sciezke(pobrany, float('inf'))
+            return sciezka
+
+        oznacz_jako_odwiedzony(pobrany)
+        glebokosc_rekursji = poziomy_rekursji[pobrany] + 1
+        sasiedzi = ustaw_sasiadow_w_porzadku(pobrany, porzadek)
+
+        for s in sasiedzi:
+            if not czy_odwiedzono(s):
+                oznacz_jako_odwiedzony(s)
+                kolejka_ruchow.put(s)
+                poziomy_rekursji[s] = glebokosc_rekursji
+
+    if sciezka != "":
+        return sciezka
+    else:
+        return -1
 
 
 def jaki_ruch(plansza_od, plansza_do):
@@ -177,20 +206,26 @@ def dfs(porzadek):
 
     def visit():
         global glebokosc_rekursji
+
         if not stos_ruchow:
             return tuple()
+
         zdjety = stos_ruchow.pop()
         oznacz_jako_odwiedzony(zdjety)
         glebokosc_rekursji = poziomy_rekursji[zdjety] + 1
+
         if glebokosc_rekursji >= maks_glebokosc_rekursji_dfs:
             for s in znajdz_sasiadow(zdjety):
                 oznacz_jako_odwiedzony(s)
+
         sasiedzi = ustaw_sasiadow_w_porzadku(zdjety, porzadek)
         sasiedzi = sasiedzi[::-1]
+
         for s in sasiedzi:
             if not czy_odwiedzono(s) and len(sasiedzi) > 1:
                 stos_ruchow.append(s)
                 poziomy_rekursji[s] = glebokosc_rekursji
+
         if zdjety == tuple([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 0]):
             generuj_sciezke(zdjety, float('inf'))
         visit()
@@ -289,4 +324,4 @@ def dodatkowe_informacje():
 
 ### "MAIN" ###:
 wczytaj_uklad_poczatkowy()
-print(dfs("LURD"))
+print(bfs("LRUD"))
