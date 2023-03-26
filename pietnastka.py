@@ -30,10 +30,10 @@ sciezka = ""
 glebokosc_rekursji = 1
 stany_odwiedzone = 0
 stany_przetworzone = 0
+
 ####
 plansze = list()
 ruchyDict = {}
-ciag_ruchow = ''
 
 
 def wczytaj_uklad_poczatkowy():
@@ -261,43 +261,46 @@ def manhattan(board):
             wynik = wynik + abs(x1 - x2) + abs(y1 - y2)
     return wynik + glebokosc_rekursji
 
-def astr_algorytm(heurystyka, tempPlansza):
+
+def astr_algorytm(heurystyka, badanyWezel):
     global glebokosc_rekursji
-    global ciag_ruchow
+    global sciezka
     global stany_odwiedzone
     global stany_przetworzone
-    oznacz_jako_odwiedzony(tempPlansza)
+    oznacz_jako_odwiedzony(badanyWezel)
 
     stany_przetworzone += 1
 
-    if tempPlansza == tuple([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 0]):
-        wynik_astr = tempPlansza
+    if badanyWezel == tuple([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 0]):
+        wynik_astr = badanyWezel
         return wynik_astr
 
-    ruchy = znajdz_mozliwe_ruchy(tempPlansza)
+    ruchy = znajdz_mozliwe_ruchy(badanyWezel)
 
     for ruch in ruchy:
-        nowyStan = nastepna_plansza(tempPlansza, ruch)
-        if nowyStan != tuple():
-            ruchyDict[nowyStan] = ruch
-            if hash(nowyStan) not in hashset:
-                plansze.append(nowyStan)
+        nowyWezel = nastepna_plansza(badanyWezel, ruch)
+        if nowyWezel != tuple():
+            ruchyDict[nowyWezel] = ruch
+            if hash(nowyWezel) not in hashset:
+                plansze.append(nowyWezel)
 
     glebokosc_rekursji += 1
 
     if heurystyka == 'manh':
         plansze.sort(key=manhattan)
     elif heurystyka == 'hamm':
-        plansze.sort(key=hamming, reverse=True)
+        plansze.sort(key=hamming, reverse=True)     #szukamy tego co ma najwiecej pol na odpowiednim miejscu -> odwracamy kolejnosc
 
-    najlepszyStan = plansze.pop(0)
-    print(najlepszyStan)
-    ciag_ruchow += ruchyDict[najlepszyStan]
-    astr_algorytm(heurystyka, najlepszyStan)
+    najblizszyStan = plansze.pop(0)
+    print(najblizszyStan)
+    sciezka += ruchyDict[najblizszyStan]
+    astr_algorytm(heurystyka, najblizszyStan)
     return
+
 
 def astr(heurystyka):
     astr_algorytm(heurystyka, plansza)
+
 
 def podaj_rozwiazanie():
     print("test")
@@ -322,7 +325,7 @@ def ileRuchow(ciag_ruchow):
 
 
 def glebokoscRekursji(glebokosc_rekursji):
-    return glebokosc_rekursji - 1  # do logiki startowe jest 1, do naszych danych wyjsciowych -> 0
+    return glebokosc_rekursji - 1
 
 
 def iloscStanowPrzetworzonych(stany_przetworzone):
@@ -341,8 +344,8 @@ czasRozpoczecia = time.time_ns()
 astr("manh")
 print("")
 czas_rozwiazania(czasRozpoczecia)
-printujRuchy(ciag_ruchow)
-print(ileRuchow(ciag_ruchow))
+printujRuchy(sciezka)
+print(ileRuchow(sciezka))
 print(glebokoscRekursji(glebokosc_rekursji))
 print(iloscStanowPrzetworzonych(stany_przetworzone))
 print(iloscStanowOdwiedzonych(plansze))
