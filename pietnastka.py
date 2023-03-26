@@ -25,10 +25,10 @@ plansza = tuple()
 hashset = set()
 stos_ruchow = []
 kolejka_ruchow = queue.Queue()
-poziomy_rekursji = {plansza: 1}
+poziomy_rekursji = {plansza: 0}
 sciezka = ""
-glebokosc_rekursji = 1
-stany_odwiedzone = 0
+najwieksza_glebokosc_na_jaka_zeszlismy = 0
+stany_odwiedzone = 1
 stany_przetworzone = 0
 ####
 plansze = list()
@@ -132,28 +132,36 @@ def czy_odwiedzono(tuple_planszy):
 
 def bfs(porzadek):
     global kolejka_ruchow
-    global glebokosc_rekursji
+    global najwieksza_glebokosc_na_jaka_zeszlismy
     global poziomy_rekursji
+    global stany_odwiedzone, stany_przetworzone
+
     poziomy_rekursji = {plansza: 1}
 
     kolejka_ruchow.put(plansza)
 
     while not kolejka_ruchow.empty():
         pobrany = kolejka_ruchow.get()
+        stany_przetworzone += 1
 
         if pobrany == tuple([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 0]):
             generuj_sciezke(pobrany, float('inf'))
             return sciezka
 
         oznacz_jako_odwiedzony(pobrany)
-        glebokosc_rekursji = poziomy_rekursji[pobrany] + 1
+        aktualna_glebokosc_drzewa = poziomy_rekursji[pobrany]
+
+        if aktualna_glebokosc_drzewa > najwieksza_glebokosc_na_jaka_zeszlismy:
+            najwieksza_glebokosc_na_jaka_zeszlismy = aktualna_glebokosc_drzewa
+
         sasiedzi = ustaw_sasiadow_w_porzadku(pobrany, porzadek)
 
         for s in sasiedzi:
             if not czy_odwiedzono(s):
                 oznacz_jako_odwiedzony(s)
                 kolejka_ruchow.put(s)
-                poziomy_rekursji[s] = glebokosc_rekursji
+                stany_odwiedzone += 1
+                poziomy_rekursji[s] = aktualna_glebokosc_drzewa + 1
 
     if sciezka != "":
         return sciezka
@@ -209,16 +217,22 @@ def dfs(porzadek):
     poziomy_rekursji = {plansza: 1}
 
     def visit():
-        global glebokosc_rekursji
+        global najwieksza_glebokosc_na_jaka_zeszlismy
+        global stany_przetworzone, stany_odwiedzone
+        aktualna_glebokosc_drzewa = 0
 
         if not stos_ruchow:
             return tuple()
 
         zdjety = stos_ruchow.pop()
+        stany_przetworzone += 1
         oznacz_jako_odwiedzony(zdjety)
-        glebokosc_rekursji = poziomy_rekursji[zdjety] + 1
+        aktualna_glebokosc_drzewa = poziomy_rekursji[zdjety]
 
-        if glebokosc_rekursji >= maks_glebokosc_rekursji_dfs:
+        if aktualna_glebokosc_drzewa > najwieksza_glebokosc_na_jaka_zeszlismy:
+            najwieksza_glebokosc_na_jaka_zeszlismy = aktualna_glebokosc_drzewa
+
+        if aktualna_glebokosc_drzewa >= maks_glebokosc_rekursji_dfs:
             for s in znajdz_sasiadow(zdjety):
                 oznacz_jako_odwiedzony(s)
 
@@ -228,7 +242,8 @@ def dfs(porzadek):
         for s in sasiedzi:
             if not czy_odwiedzono(s) and len(sasiedzi) > 1:
                 stos_ruchow.append(s)
-                poziomy_rekursji[s] = glebokosc_rekursji
+                stany_odwiedzone += 1
+                poziomy_rekursji[s] = aktualna_glebokosc_drzewa + 1
 
         if zdjety == tuple([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 0]):
             generuj_sciezke(zdjety, float('inf'))
@@ -247,7 +262,7 @@ def hamming(board):
     for i in range(0, k * w):
         if board[i] == i + 1 and board[i] != 0:
             wynik = wynik + 1
-    return wynik + glebokosc_rekursji
+    return wynik + najwieksza_glebokosc_na_jaka_zeszlismy
 
 
 def manhattan(board):
@@ -259,10 +274,11 @@ def manhattan(board):
             x2 = int((int(board[i]) - 1) % w)
             y2 = int((int(board[i]) - 1) / w)
             wynik = wynik + abs(x1 - x2) + abs(y1 - y2)
-    return wynik + glebokosc_rekursji
+    return wynik + najwieksza_glebokosc_na_jaka_zeszlismy
+
 
 def astr_algorytm(heurystyka, tempPlansza):
-    global glebokosc_rekursji
+    global najwieksza_glebokosc_na_jaka_zeszlismy
     global ciag_ruchow
     global stany_odwiedzone
     global stany_przetworzone
@@ -283,7 +299,7 @@ def astr_algorytm(heurystyka, tempPlansza):
             if hash(nowyStan) not in hashset:
                 plansze.append(nowyStan)
 
-    glebokosc_rekursji += 1
+    najwieksza_glebokosc_na_jaka_zeszlismy += 1
 
     if heurystyka == 'manh':
         plansze.sort(key=manhattan)
@@ -296,8 +312,10 @@ def astr_algorytm(heurystyka, tempPlansza):
     astr_algorytm(heurystyka, najlepszyStan)
     return
 
+
 def astr(heurystyka):
     astr_algorytm(heurystyka, plansza)
+
 
 def podaj_rozwiazanie():
     print("test")
@@ -318,19 +336,10 @@ def printujRuchy(ciag_ruchow):
 
 
 def ileRuchow(ciag_ruchow):
-    return len(ciag_ruchow)
-
-
-def glebokoscRekursji(glebokosc_rekursji):
-    return glebokosc_rekursji - 1  # do logiki startowe jest 1, do naszych danych wyjsciowych -> 0
-
-
-def iloscStanowPrzetworzonych(stany_przetworzone):
-    return stany_przetworzone
-
-
-def iloscStanowOdwiedzonych(plansze):
-    return len(plansze)
+    try:
+        return len(ciag_ruchow)
+    except TypeError:
+        return -1
 
 
 ### "MAIN" ###:
@@ -338,11 +347,12 @@ wczytaj_uklad_poczatkowy()
 # print(dfs("URDL"))
 
 czasRozpoczecia = time.time_ns()
-astr("manh")
+# astr("manh")
+ruchy = dfs("DRUL")
 print("")
 czas_rozwiazania(czasRozpoczecia)
-printujRuchy(ciag_ruchow)
-print(ileRuchow(ciag_ruchow))
-print(glebokoscRekursji(glebokosc_rekursji))
-print(iloscStanowPrzetworzonych(stany_przetworzone))
-print(iloscStanowOdwiedzonych(plansze))
+print(sciezka)
+print(f"ilość ruchów: {ileRuchow(ruchy)}")
+print(f"głębokość rekursji: {najwieksza_glebokosc_na_jaka_zeszlismy}")
+print(f"stany odwiedzone: {stany_odwiedzone}")
+print(f"stany przetworzone: {stany_przetworzone}")
