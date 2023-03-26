@@ -245,7 +245,7 @@ def dfs(porzadek):
 def hamming(board):
     wynik = 0
     for i in range(0, k * w):
-        if board[i] == str(i + 1) and board[i] != 0:
+        if board[i] == i + 1 and board[i] != 0:
             wynik = wynik + 1
     return wynik + glebokosc_rekursji
 
@@ -254,10 +254,10 @@ def manhattan(board):
     wynik = 0
     for i in range(0, w * k):
         if board[i] != 0:
-            x1 = i % board[i]
-            y1 = i / board[i]
-            x2 = board[i] - 1 % board[i]
-            y2 = board[i] - 1 / board[i]
+            x1 = int(i % w)
+            y1 = int(i / w)
+            x2 = int((int(board[i]) - 1) % w)
+            y2 = int((int(board[i]) - 1) / w)
             wynik = wynik + abs(x1 - x2) + abs(y1 - y2)
     return wynik + glebokosc_rekursji
 
@@ -275,6 +275,7 @@ def astr_algorytm(heurystyka, tempPlansza):
         return wynik_astr
 
     ruchy = znajdz_mozliwe_ruchy(tempPlansza)
+
     for ruch in ruchy:
         nowyStan = nastepna_plansza(tempPlansza, ruch)
         if nowyStan != tuple():
@@ -287,7 +288,7 @@ def astr_algorytm(heurystyka, tempPlansza):
     if heurystyka == 'manh':
         plansze.sort(key=manhattan)
     elif heurystyka == 'hamm':
-        plansze.sort(key=hamming)
+        plansze.sort(key=hamming, reverse=True)
 
     najlepszyStan = plansze.pop(0)
     print(najlepszyStan)
@@ -337,7 +338,7 @@ wczytaj_uklad_poczatkowy()
 # print(dfs("URDL"))
 
 czasRozpoczecia = time.time_ns()
-astr("hamm")
+astr("manh")
 print("")
 czas_rozwiazania(czasRozpoczecia)
 printujRuchy(ciag_ruchow)
