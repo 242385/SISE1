@@ -1,6 +1,7 @@
 # Import, system
 import sys
 import re
+import queue
 import time
 
 sys.setrecursionlimit(10 ** 9)
@@ -23,6 +24,9 @@ poprzedni_uklad = tuple()
 plansza = tuple()
 hashset = set()
 stos_ruchow = []
+kolejka_ruchow = queue.Queue()
+poziomy_rekursji = {plansza: 1}
+sciezka = ""
 glebokosc_rekursji = 1
 stany_odwiedzone = 0
 stany_przetworzone = 0
@@ -127,41 +131,115 @@ def czy_odwiedzono(tuple_planszy):
 
 
 def bfs(porzadek):
-    print("test")
+    global kolejka_ruchow
+    global glebokosc_rekursji
+    global poziomy_rekursji
+    poziomy_rekursji = {plansza: 1}
+
+    kolejka_ruchow.put(plansza)
+
+    while not kolejka_ruchow.empty():
+        pobrany = kolejka_ruchow.get()
+
+        if pobrany == tuple([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 0]):
+            generuj_sciezke(pobrany, float('inf'))
+            return sciezka
+
+        oznacz_jako_odwiedzony(pobrany)
+        glebokosc_rekursji = poziomy_rekursji[pobrany] + 1
+        sasiedzi = ustaw_sasiadow_w_porzadku(pobrany, porzadek)
+
+        for s in sasiedzi:
+            if not czy_odwiedzono(s):
+                oznacz_jako_odwiedzony(s)
+                kolejka_ruchow.put(s)
+                poziomy_rekursji[s] = glebokosc_rekursji
+
+    if sciezka != "":
+        return sciezka
+    else:
+        return -1
 
 
-def generuj_kroki():
-    print("test")
+def jaki_ruch(plansza_od, plansza_do):
+    od_0 = plansza_od.index(0)
+    do_0 = plansza_do.index(0)
+    global w
+
+    if do_0 - od_0 == -1:
+        return "L"
+    elif do_0 - od_0 == 1:
+        return "R"
+    elif do_0 - od_0 == -w:
+        return "U"
+    elif do_0 - od_0 == w:
+        return "D"
+    else:
+        return None
+
+
+def ustaw_sasiadow_w_porzadku(wezel, porzadek):
+    sasiedzi = znajdz_sasiadow(wezel)
+    ruchy = {}
+    for s in sasiedzi:
+        ruchy[jaki_ruch(wezel, s)] = s
+
+    posortowane_ruchy = {litera: ruchy[litera] for litera in porzadek if litera in ruchy}
+    return tuple(posortowane_ruchy.values())
+
+
+def generuj_sciezke(koniec, min_poziom):
+    global sciezka
+
+    if koniec == plansza:
+        sciezka = sciezka[::-1]
+
+    sasiedzi = znajdz_sasiadow(koniec)
+
+    for s in sasiedzi:
+        if s in poziomy_rekursji and poziomy_rekursji[s] < min_poziom and czy_odwiedzono(s):
+            min_poziom = poziomy_rekursji[s]
+            sciezka += jaki_ruch(s, koniec)
+            generuj_sciezke(s, min_poziom)
 
 
 def dfs(porzadek):
     global stos_ruchow
-    wynik = tuple()
+    global poziomy_rekursji
     poziomy_rekursji = {plansza: 1}
 
     def visit():
         global glebokosc_rekursji
+
         if not stos_ruchow:
             return tuple()
+
         zdjety = stos_ruchow.pop()
         oznacz_jako_odwiedzony(zdjety)
         glebokosc_rekursji = poziomy_rekursji[zdjety] + 1
+
         if glebokosc_rekursji >= maks_glebokosc_rekursji_dfs:
             for s in znajdz_sasiadow(zdjety):
                 oznacz_jako_odwiedzony(s)
-        for s in znajdz_sasiadow(zdjety):
-            if not czy_odwiedzono(s) and len(znajdz_sasiadow(zdjety)) > 1:
+
+        sasiedzi = ustaw_sasiadow_w_porzadku(zdjety, porzadek)
+        sasiedzi = sasiedzi[::-1]
+
+        for s in sasiedzi:
+            if not czy_odwiedzono(s) and len(sasiedzi) > 1:
                 stos_ruchow.append(s)
                 poziomy_rekursji[s] = glebokosc_rekursji
-        # print(f"{zdjety} | {glebokosc_rekursji}")
+
         if zdjety == tuple([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 0]):
-            nonlocal wynik
-            wynik = zdjety
+            generuj_sciezke(zdjety, float('inf'))
         visit()
 
     stos_ruchow.append(plansza)
     visit()
-    return wynik
+    if sciezka != "":
+        return sciezka
+    else:
+        return -1
 
 
 def hamming(board):
@@ -182,7 +260,6 @@ def manhattan(board):
             y2 = board[i] - 1 / board[i]
             wynik = wynik + abs(x1 - x2) + abs(y1 - y2)
     return wynik + glebokosc_rekursji
-
 
 def astr_algorytm(heurystyka, tempPlansza):
     global glebokosc_rekursji
@@ -218,10 +295,8 @@ def astr_algorytm(heurystyka, tempPlansza):
     astr_algorytm(heurystyka, najlepszyStan)
     return
 
-
 def astr(heurystyka):
     astr_algorytm(heurystyka, plansza)
-
 
 def podaj_rozwiazanie():
     print("test")
