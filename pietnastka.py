@@ -43,7 +43,7 @@ def wczytaj_uklad_poczatkowy():
     global w, k
     w = int(tab[0])
     k = int(tab[1])
-    print(f"x = {w}, y = {k}")
+    # print(f"x = {w}, y = {k}")
 
     kontener_string = []
     for i in range(0, k):
@@ -189,7 +189,7 @@ def dfs(porzadek):
         if zdjety.depth < maks_glebokosc_rekursji_dfs:
             for s in sasiedzi:
                 if not dfs_czy_odwiedzono(s, zdjety.depth):  # and len(sasiedzi) > 1:
-                    sb = board.Board(s)
+                    sb = board.Board(w, k, s)
                     sb.depth = zdjety.depth + 1
                     stos_ukladow.append(sb)
                     # dfs_oznacz_jako_odwiedzony(s, aktualna_glebokosc_drzewa)
@@ -198,7 +198,7 @@ def dfs(porzadek):
                     # dfs_dictionary[hash(s)] = aktualna_glebokosc_drzewa + 1
         visit()
 
-    uklad = board.Board(plansza)
+    uklad = board.Board(w, k, plansza)
     stos_ukladow.append(uklad)
     visit()
 
@@ -299,74 +299,50 @@ def dfs_generuj_sciezke(koniec, min_poziom, glebokosc):
             dfs_generuj_sciezke(s, min_poziom, glebokosc)
 
 
-def hamming(board):
-    wynik = 0
-    for i in range(0, k * w):
-        if board[i] == i + 1 and board[i] != 0:
-            wynik = wynik + 1
-    return wynik + najwieksza_glebokosc_na_jaka_zeszlismy
-
-
-def manhattan(board):
-    wynik = 0
-    for i in range(0, w * k):
-        if board[i] != 0:
-            x1 = int(i % w)
-            y1 = int(i / w)
-            x2 = int((int(board[i]) - 1) % w)
-            y2 = int((int(board[i]) - 1) / w)
-            wynik = wynik + abs(x1 - x2) + abs(y1 - y2)
-    return wynik + najwieksza_glebokosc_na_jaka_zeszlismy
-
-
-def astr_algorytm(heurystyka, badanyWezel):
+def astr_algorytm(badanyWezel):
     global najwieksza_glebokosc_na_jaka_zeszlismy
     global sciezka
     global stany_odwiedzone
     global stany_przetworzone
-    oznacz_jako_odwiedzony(badanyWezel)
+    oznacz_jako_odwiedzony(badanyWezel.tab)
+
+    if najwieksza_glebokosc_na_jaka_zeszlismy < badanyWezel.depth:
+        najwieksza_glebokosc_na_jaka_zeszlismy = badanyWezel.depth
 
     stany_przetworzone += 1
 
-    if badanyWezel == tuple([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 0]):
-        najwieksza_glebokosc_na_jaka_zeszlismy += 1
-        wynik_astr = badanyWezel
+    if badanyWezel.tab == tuple([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 0]):
+        # najwieksza_glebokosc_na_jaka_zeszlismy += 1
+        wynik_astr = badanyWezel.tab
         return wynik_astr
 
-    ruchy = znajdz_mozliwe_ruchy(badanyWezel)
+    ruchy = znajdz_mozliwe_ruchy(badanyWezel.tab)
 
     for ruch in ruchy:
-        nowyWezel = nastepna_plansza(badanyWezel, ruch)
-        if nowyWezel != tuple():
-            ruchyDict[nowyWezel] = ruch
-            if hash(nowyWezel) not in hashset:
+        nowyWezel = board.Board(w, k, nastepna_plansza(badanyWezel.tab, ruch))
+        nowyWezel.depth = badanyWezel.depth + 1
+        if nowyWezel.tab != tuple():
+            ruchyDict[nowyWezel.tab] = ruch
+            if hash(nowyWezel.tab) not in hashset:
                 plansze.append(nowyWezel)
                 stany_odwiedzone += 1
 
-    najwieksza_glebokosc_na_jaka_zeszlismy += 1
+    # najwieksza_glebokosc_na_jaka_zeszlismy += 1
 
-    if heurystyka == 'manh':
-        plansze.sort(key=manhattan)
-    elif heurystyka == 'hamm':
-        plansze.sort(key=hamming, reverse=True)  # szukamy tego co ma najwiecej pol na odpowiednim miejscu -> odwracamy kolejnosc
-
+    plansze.sort()
     najblizszyStan = plansze.pop(0)
-    print(najblizszyStan)
-    sciezka += ruchyDict[najblizszyStan]
-    astr_algorytm(heurystyka, najblizszyStan)
+    # print(najblizszyStan)
+    sciezka += ruchyDict[najblizszyStan.tab]
+
+    astr_algorytm(najblizszyStan)
     return
 
 
 def astr(heurystyka):
-    astr_algorytm(heurystyka, plansza)
-
-
-def podaj_rozwiazanie():
-    print("test")
-
-
-def dodatkowe_informacje():
-    print("test")
+    Tablica = board.Board(w, k, plansza)
+    Tablica.depth = 0
+    Tablica.metric = heurystyka
+    astr_algorytm(Tablica)
 
 
 def wyliczanieCzasuRozwiazania(czasRozpoczecia):
@@ -424,7 +400,6 @@ def wylicz(parametr_1, parametr_2):
 
 ### "MAIN" ###:
 wczytaj_uklad_poczatkowy()
-
 czasRozpoczecia = time.time_ns()
 wylicz(strategia, porzadek_przeszukiwania_lub_heurystyka)
 czas_koncowy = wyliczanieCzasuRozwiazania(czasRozpoczecia)
@@ -432,9 +407,10 @@ zapisz_do_plikow(plik_koncowy, plik_informacje)
 
 ### DEBUGGING ###
 
-print(wyliczanieCzasuRozwiazania(czasRozpoczecia))
-print(sciezka)
-print(f"ilość ruchów: {ileRuchow(sciezka)}")
-print(f"największa głębokość rekursji (na jaką zeszliśmy): {najwieksza_glebokosc_na_jaka_zeszlismy}")
-print(f"stany odwiedzone: {stany_odwiedzone}")
-print(f"stany przetworzone: {stany_przetworzone}")
+#bfs("RUDL")
+#print(wyliczanieCzasuRozwiazania(czasRozpoczecia))
+#print(sciezka)
+#print(f"ilość ruchów: {ileRuchow(sciezka)}")
+#print(f"największa głębokość rekursji (na jaką zeszliśmy): {najwieksza_glebokosc_na_jaka_zeszlismy}")
+#print(f"stany odwiedzone: {stany_odwiedzone}")
+#print(f"stany przetworzone: {stany_przetworzone}")
