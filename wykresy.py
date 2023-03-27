@@ -58,9 +58,9 @@ def wykresOgolny(dane_wszystkie, numer_kryterium, nazwa_kryterium, czy_logarytm)
              label=['A*', 'BFS', 'DFS'],
              color=['#2DA02E', '#1E77B4', '#FF7F17'],
              align="mid", bins=np.arange(10) - 0.5)
-    plt.title('Ogólne', fontsize=14)
-    plt.xlabel('Głębokość rozwiazania', fontsize=11)
-    plt.ylabel(nazwa_kryterium, fontsize=11)
+    plt.title('Ogólne', fontsize=16)
+    plt.xlabel('Głębokość rozwiazania', fontsize=12)
+    plt.ylabel(nazwa_kryterium, fontsize=12)
     plt.legend(loc='upper left')
     plt.rcParams["figure.figsize"] = (9, 6)
     if czy_logarytm == "log":
@@ -104,9 +104,9 @@ def wykresAstr(wszystkie_dane, numer_kryterium, nazwa_kryterium):
              weights=[srednia_manhattan, srednia_hamming],
              label=['Manhattan', 'Hamming'],
              color=['#FF7F17', '#1E77B4'], align="mid", bins=np.arange(10) - 0.5)
-    plt.title('A*', fontsize=14)
-    plt.xlabel('Głębokość rozwiazania', fontsize=11)
-    plt.ylabel(nazwa_kryterium, fontsize=11)
+    plt.title('A*', fontsize=16)
+    plt.xlabel('Głębokość rozwiazania', fontsize=12)
+    plt.ylabel(nazwa_kryterium, fontsize=12)
     plt.legend(loc='upper left')
     plt.rcParams["figure.figsize"] = (9, 6)
     plt.xticks(range(8))
@@ -212,9 +212,9 @@ def wykresDFS(dane_wszystkie, numer_kryterium, nazwa_kryterium, czy_logarytm):
              label=['RDLU', 'RDUL', 'DRUL', 'DRLU', 'LUDR', 'LURD', 'ULDR', 'ULRD'],
              color=['#FF7F17', '#1E77B4', '#2DA02E', '#D62728', '#8C564B', '#9467BD', '#E277C1', '#7F7F7F'],
              align="mid", bins=np.arange(10) - 0.5)
-    plt.title('DFS', fontsize=14)
-    plt.xlabel('Głębokość rozwiazania', fontsize=11)
-    plt.ylabel(nazwa_kryterium, fontsize=11)
+    plt.title('DFS', fontsize=16)
+    plt.xlabel('Głębokość rozwiazania', fontsize=12)
+    plt.ylabel(nazwa_kryterium, fontsize=12)
     plt.rcParams["figure.figsize"] = (9, 6)
     plt.legend(loc='lower right')
     plt.xticks(range(8))
@@ -319,9 +319,9 @@ def wykresBFS(dane_wszystkie, numer_kryterium, nazwa_kryterium, czy_logarytm):
              label=['RDLU', 'RDUL', 'DRUL', 'DRLU', 'LUDR', 'LURD', 'ULDR', 'ULRD'],
              color=['#1E77B4', '#FF7F17', '#2DA02E', '#D62728', '#8C564B', '#9467BD', '#E277C1', '#7F7F7F'],
              align="mid", bins=np.arange(10) - 0.5)
-    plt.title('BFS', fontsize=14)
-    plt.xlabel('Głębokość rozwiazania', fontsize=11)
-    plt.ylabel(nazwa_kryterium, fontsize=11)
+    plt.title('BFS', fontsize=16)
+    plt.xlabel('Głębokość rozwiazania', fontsize=12)
+    plt.ylabel(nazwa_kryterium, fontsize=12)
     plt.rcParams["figure.figsize"] = (9, 6)
     plt.legend(loc='upper left')
     plt.xticks(range(8))
