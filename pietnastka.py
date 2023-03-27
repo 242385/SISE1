@@ -3,11 +3,12 @@ import sys
 import re
 import queue
 import time
+import board
 
 sys.setrecursionlimit(10 ** 9)
 
 # Stałe
-maks_glebokosc_rekursji_dfs = 25
+maks_glebokosc_rekursji_dfs = 20
 
 # Parametry uruchomienia programu
 strategia = sys.argv[1]
@@ -22,14 +23,14 @@ k = 0
 poprzedni_uklad = tuple()
 plansza = tuple()
 hashset = set()
-stos_ruchow = []
+stos_ukladow = []
 kolejka_ruchow = queue.Queue()
 poziomy_rekursji = {plansza: 0}
 sciezka = ""
 najwieksza_glebokosc_na_jaka_zeszlismy = 0
 stany_odwiedzone = 1
 stany_przetworzone = 0
-
+dfs_dictionary = dict()
 ####
 plansze = list()
 ruchyDict = {}
@@ -117,6 +118,21 @@ def oznacz_jako_odwiedzony(tuple_planszy):
     hashset.add(hash(tuple_planszy))
 
 
+def dfs_oznacz_jako_odwiedzony(tuple, aktualna_glebokosc):
+    global dfs_dictionary
+    dfs_dictionary[hash(tuple)] = aktualna_glebokosc
+
+
+def dfs_czy_odwiedzono(tuple, aktualna_glebokosc):
+    global dfs_dictionary
+    if hash(tuple) not in dfs_dictionary:
+        return False
+    if hash(tuple) in dfs_dictionary and aktualna_glebokosc < dfs_dictionary[hash(tuple)]:
+        return False
+    else:
+        return True
+
+
 def oznacz_jako_nieodwiedzony(tuple_planszy):
     global hashset
     if czy_odwiedzono(tuple_planszy):
@@ -128,6 +144,63 @@ def czy_odwiedzono(tuple_planszy):
         return 1
     else:
         return 0
+
+
+def czy_sasiedzi(sasiad1, sasiad2):
+    if sasiad1 in znajdz_sasiadow(sasiad2):
+        return True
+    else:
+        return False
+
+
+def dfs(porzadek):
+    global stos_ukladow
+    global poziomy_rekursji
+    global dfs_dictionary
+
+    def visit():
+        global najwieksza_glebokosc_na_jaka_zeszlismy
+        global stany_przetworzone, stany_odwiedzone, dfs_dictionary
+
+        if not stos_ukladow:
+            return tuple()
+
+        zdjety = stos_ukladow.pop()
+
+        if zdjety.tab == tuple([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 0]):
+            dfs_generuj_sciezke(zdjety.tab, float('inf'), zdjety.depth)
+            return sciezka
+
+        stany_przetworzone += 1
+        # oznacz_jako_odwiedzony(zdjety)
+        # aktualna_glebokosc_drzewa = dfs_dictionary[hash(zdjety)]
+        if not dfs_czy_odwiedzono(zdjety.tab, zdjety.depth):
+            dfs_oznacz_jako_odwiedzony(zdjety.tab, zdjety.depth)
+
+        if zdjety.depth > najwieksza_glebokosc_na_jaka_zeszlismy:
+            najwieksza_glebokosc_na_jaka_zeszlismy = zdjety.depth
+
+        sasiedzi = ustaw_sasiadow_w_porzadku(zdjety.tab, porzadek)
+        sasiedzi = sasiedzi[::-1]
+
+        # for s in znajdz_sasiadow(zdjety):
+        # oznacz_jako_odwiedzony(s)
+
+        if zdjety.depth < maks_glebokosc_rekursji_dfs:
+            for s in sasiedzi:
+                if not dfs_czy_odwiedzono(s, zdjety.depth):  # and len(sasiedzi) > 1:
+                    sb = board.Board(s)
+                    sb.depth = zdjety.depth + 1
+                    stos_ukladow.append(sb)
+                    # dfs_oznacz_jako_odwiedzony(s, aktualna_glebokosc_drzewa)
+                    stany_odwiedzone += 1
+                    # poziomy_rekursji[s] = aktualna_glebokosc_drzewa + 1
+                    # dfs_dictionary[hash(s)] = aktualna_glebokosc_drzewa + 1
+        visit()
+
+    uklad = board.Board(plansza)
+    stos_ukladow.append(uklad)
+    visit()
 
 
 def bfs(porzadek):
@@ -211,49 +284,19 @@ def generuj_sciezke(koniec, min_poziom):
             generuj_sciezke(s, min_poziom)
 
 
-def dfs(porzadek):
-    global stos_ruchow
-    global poziomy_rekursji
-    poziomy_rekursji = {plansza: 1}
+def dfs_generuj_sciezke(koniec, min_poziom, glebokosc):
+    global sciezka
 
-    def visit():
-        global najwieksza_glebokosc_na_jaka_zeszlismy
-        global stany_przetworzone, stany_odwiedzone
+    if koniec == plansza:
+        sciezka = sciezka[::-1]
 
-        if not stos_ruchow:
-            return tuple()
+    sasiedzi = znajdz_sasiadow(koniec)
 
-        zdjety = stos_ruchow.pop()
-
-        if zdjety == tuple([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 0]):
-            generuj_sciezke(zdjety, float('inf'))
-            return sciezka
-
-        stany_przetworzone += 1
-        oznacz_jako_odwiedzony(zdjety)
-        aktualna_glebokosc_drzewa = poziomy_rekursji[zdjety]
-
-        if aktualna_glebokosc_drzewa > najwieksza_glebokosc_na_jaka_zeszlismy:
-            najwieksza_glebokosc_na_jaka_zeszlismy = aktualna_glebokosc_drzewa
-
-        if aktualna_glebokosc_drzewa >= maks_glebokosc_rekursji_dfs:
-            for s in znajdz_sasiadow(zdjety):
-                oznacz_jako_odwiedzony(s)
-
-        sasiedzi = ustaw_sasiadow_w_porzadku(zdjety, porzadek)
-        sasiedzi = sasiedzi[::-1]
-
-        for s in sasiedzi:
-            if not czy_odwiedzono(s):  # and len(sasiedzi) > 1:
-                stos_ruchow.append(s)
-                stany_odwiedzone += 1
-                poziomy_rekursji[s] = aktualna_glebokosc_drzewa + 1
-
-        visit()
-
-    stos_ruchow.append(plansza)
-    visit()
-    return -1
+    for s in sasiedzi:
+        if hash(s) in dfs_dictionary and dfs_dictionary[hash(s)] < min_poziom and dfs_czy_odwiedzono(s, glebokosc):
+            min_poziom = dfs_dictionary[hash(s)]
+            sciezka += jaki_ruch(s, koniec)
+            dfs_generuj_sciezke(s, min_poziom, glebokosc)
 
 
 def hamming(board):
