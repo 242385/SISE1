@@ -334,7 +334,7 @@ def astr_algorytm(badanyWezel):
         nowyWezel = board.Board(w, k, nastepna_plansza(badanyWezel.tab, ruch), ruch)
         nowyWezel.depth = badanyWezel.depth + 1
         if nowyWezel.tab != tuple():
-            # ruchyDict[nowyWezel.tab] = ruch
+            #ruchyDict[nowyWezel.tab] = ruch
             #if counter == 0:
             ruchyDict[badanyWezel.tab] = ruch
             poziomy_rekursji[nowyWezel.tab] = nowyWezel.depth
@@ -422,18 +422,16 @@ wczytaj_uklad_poczatkowy()
 czasRozpoczecia = time.time_ns()
 wylicz(strategia, porzadek_przeszukiwania_lub_heurystyka)
 czas_koncowy = wyliczanieCzasuRozwiazania(czasRozpoczecia)
-# zapisz_do_plikow(plik_koncowy, plik_informacje)
+zapisz_do_plikow(plik_koncowy, plik_informacje)
 
 ### DEBUGGING ###
 
 # print(bfs("LRUD"))
-astr("manh")
-print(wyliczanieCzasuRozwiazania(czasRozpoczecia))
-print(sciezka)
+#astr("hamm")
+#print(wyliczanieCzasuRozwiazania(czasRozpoczecia))
+#print(sciezka)
 
-print(f"ilość ruchów: {ileRuchow(sciezka)}")
-print(f"największa głębokość rekursji (na jaką zeszliśmy): {najwieksza_glebokosc_na_jaka_zeszlismy}")
-print(f"stany odwiedzone: {stany_odwiedzone}")
-print(f"stany przetworzone: {stany_przetworzone}")
-
-# ZONK -> dodajemy zawsze plansze wynikowe, czyli nigdy nie dodamy startowej planszy do tablicy
+#print(f"ilość ruchów: {ileRuchow(sciezka)}")
+#print(f"największa głębokość rekursji (na jaką zeszliśmy): {najwieksza_glebokosc_na_jaka_zeszlismy}")
+#print(f"stany odwiedzone: {stany_odwiedzone}")
+#print(f"stany przetworzone: {stany_przetworzone}")
