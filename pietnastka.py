@@ -25,7 +25,7 @@ plansza = tuple()
 hashset = set()
 stos_ukladow = []
 kolejka_ruchow = queue.Queue()
-poziomy_rekursji = {plansza: 0}
+poziomy_rekursji = {}
 sciezka = ""
 najwieksza_glebokosc_na_jaka_zeszlismy = 0
 stany_odwiedzone = 1
@@ -320,7 +320,8 @@ def astr_algorytm(badanyWezel):
         # sciezka += plansze[i].move
         # wynik_astr = badanyWezel.tab
         wynik_astr = generuj_sciezke(badanyWezel.tab, float("inf"))
-        #sciezka+=ruchyDict[plansza]
+        najwieksza_glebokosc_na_jaka_zeszlismy += 1
+        # sciezka+=ruchyDict[plansza]
         return wynik_astr
 
     # if counter == 0:
@@ -334,9 +335,9 @@ def astr_algorytm(badanyWezel):
         nowyWezel.depth = badanyWezel.depth + 1
         if nowyWezel.tab != tuple():
             # ruchyDict[nowyWezel.tab] = ruch
-            if counter == 0:
-                ruchyDict[badanyWezel.tab] = ruch
-                poziomy_rekursji[nowyWezel.tab] = badanyWezel.depth
+            #if counter == 0:
+            ruchyDict[badanyWezel.tab] = ruch
+            poziomy_rekursji[nowyWezel.tab] = nowyWezel.depth
             if hash(nowyWezel.tab) not in hashset:
                 plansze.append(nowyWezel)
                 stany_odwiedzone += 1
@@ -354,9 +355,12 @@ def astr_algorytm(badanyWezel):
 
 def astr(heurystyka):
     global Tablica
+    global poziomy_rekursji
+    global najwieksza_glebokosc_na_jaka_zeszlismy
     Tablica = board.Board(w, k, plansza, "")
-    Tablica.depth = 0
+    Tablica.depth = -1
     Tablica.metric = heurystyka
+    poziomy_rekursji[Tablica.tab] = Tablica.depth
     astr_algorytm(Tablica)
 
 
