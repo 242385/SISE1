@@ -9,7 +9,7 @@ class Board:
 
     def __lt__(self, obj):
         if self.metric == "hamm":
-            return (self.hamming()) < (obj.hamming())
+            return (self.hamming()) <= (obj.hamming())
         else:
             return (self.manhattan()) < (obj.manhattan())
 

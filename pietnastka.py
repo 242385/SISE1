@@ -304,6 +304,8 @@ def astr_algorytm(badanyWezel):
     global sciezka
     global stany_odwiedzone
     global stany_przetworzone
+    global poziomy_rekursji
+    counter = 0
     oznacz_jako_odwiedzony(badanyWezel.tab)
 
     if najwieksza_glebokosc_na_jaka_zeszlismy < badanyWezel.depth:
@@ -313,12 +315,17 @@ def astr_algorytm(badanyWezel):
 
     if badanyWezel.tab == tuple([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 0]):
         # najwieksza_glebokosc_na_jaka_zeszlismy += 1
-        #plansze.sort()
-        #for i in (0, 8):
-            #sciezka += plansze[i].move
-        #wynik_astr = badanyWezel.tab
+        # plansze.sort()
+        # for i in (0, 8):
+        # sciezka += plansze[i].move
+        # wynik_astr = badanyWezel.tab
         wynik_astr = generuj_sciezke(badanyWezel.tab, float("inf"))
+        #sciezka+=ruchyDict[plansza]
         return wynik_astr
+
+    # if counter == 0:
+    # poziomy_rekursji[badanyWezel.tab] = badanyWezel.depth
+    # plansze.append(badanyWezel)
 
     ruchy = znajdz_mozliwe_ruchy(badanyWezel.tab)
 
@@ -326,8 +333,10 @@ def astr_algorytm(badanyWezel):
         nowyWezel = board.Board(w, k, nastepna_plansza(badanyWezel.tab, ruch), ruch)
         nowyWezel.depth = badanyWezel.depth + 1
         if nowyWezel.tab != tuple():
-            #ruchyDict[nowyWezel.tab] = ruch
-            poziomy_rekursji[nowyWezel.tab] = badanyWezel.depth
+            # ruchyDict[nowyWezel.tab] = ruch
+            if counter == 0:
+                ruchyDict[badanyWezel.tab] = ruch
+                poziomy_rekursji[nowyWezel.tab] = badanyWezel.depth
             if hash(nowyWezel.tab) not in hashset:
                 plansze.append(nowyWezel)
                 stany_odwiedzone += 1
@@ -336,13 +345,15 @@ def astr_algorytm(badanyWezel):
 
     plansze.sort()
     najblizszyStan = plansze.pop(0)
-    print(najblizszyStan)
+    # print(najblizszyStan)
 
+    counter += 1
     astr_algorytm(najblizszyStan)
     return
 
 
 def astr(heurystyka):
+    global Tablica
     Tablica = board.Board(w, k, plansza, "")
     Tablica.depth = 0
     Tablica.metric = heurystyka
@@ -405,14 +416,14 @@ def wylicz(parametr_1, parametr_2):
 ### "MAIN" ###:
 wczytaj_uklad_poczatkowy()
 czasRozpoczecia = time.time_ns()
-#wylicz(strategia, porzadek_przeszukiwania_lub_heurystyka)
-#czas_koncowy = wyliczanieCzasuRozwiazania(czasRozpoczecia)
-#zapisz_do_plikow(plik_koncowy, plik_informacje)
+wylicz(strategia, porzadek_przeszukiwania_lub_heurystyka)
+czas_koncowy = wyliczanieCzasuRozwiazania(czasRozpoczecia)
+# zapisz_do_plikow(plik_koncowy, plik_informacje)
 
 ### DEBUGGING ###
 
-print(astr("manh"))
-#bfs("RUDL")
+# print(bfs("LRUD"))
+astr("manh")
 print(wyliczanieCzasuRozwiazania(czasRozpoczecia))
 print(sciezka)
 
@@ -420,3 +431,5 @@ print(f"ilość ruchów: {ileRuchow(sciezka)}")
 print(f"największa głębokość rekursji (na jaką zeszliśmy): {najwieksza_glebokosc_na_jaka_zeszlismy}")
 print(f"stany odwiedzone: {stany_odwiedzone}")
 print(f"stany przetworzone: {stany_przetworzone}")
+
+# ZONK -> dodajemy zawsze plansze wynikowe, czyli nigdy nie dodamy startowej planszy do tablicy
